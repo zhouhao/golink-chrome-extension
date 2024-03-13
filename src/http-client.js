@@ -2,13 +2,14 @@ import { jwtDecode } from 'jwt-decode';
 import camelcaseKeys from 'camelcase-keys';
 import conf from '../env.json';
 
-import $ from 'jquery';
-import 'notifyjs-browser';
-
-export function getUrl(url) {
-  $.notify('Go link created successfully', 'success');
+function getUrl(url) {
   return `${conf.server_endpoint}${url}`;
 }
+
+const parseKey = (url) => {
+  const pathname = new URL(url).pathname;
+  return pathname.split('/').pop();
+};
 
 function get(url, headers = {}) {
   return fetch(getUrl(url), {
@@ -75,7 +76,7 @@ export const isLoggedIn = () => {
 export const requestEmailCode = (email) => {
   return new Promise((resolve, reject) => {
     post('/email_code', { email: email }).then(response => {
-      $.notify('Verification Code has been sent to your email', 'success');
+      resolve(response);
     }).catch(error => {
       console.error(error);
       reject(error);
@@ -120,18 +121,17 @@ export const refreshToken = refreshToken => {
   });
 };
 
-export const fetchAllMyNotes = keyword => {
+export const fetchGoLinksByUrl = url => {
   return new Promise((resolve, reject) => {
     checkUserAuthInfo()
       .then(res => {
-
-        get('/notes' + (keyword ? '?keyword=' + keyword : ''), { Authorization: res.access_token })
+        post('/go_links', { link: url }, { Authorization: res.access_token })
           .then(response => response.json())
           .then(data => {
             resolve(camelcaseKeys(data));
           })
           .catch(error => {
-            console.log(error);
+            console.error(error);
             reject(error);
           });
       })
@@ -141,11 +141,12 @@ export const fetchAllMyNotes = keyword => {
   });
 };
 
-export const fetchGoLinks = url => {
+export const getRealUrl = goLink => {
+  const key = parseKey(goLink);
   return new Promise((resolve, reject) => {
     checkUserAuthInfo()
       .then(res => {
-        post('/go_links', { link: url }, { Authorization: res.access_token })
+        get('/go_link/' + key, { Authorization: res.access_token })
           .then(response => response.json())
           .then(data => {
             resolve(camelcaseKeys(data));
@@ -171,11 +172,10 @@ export const saveGoLink = (url, urlKey) => {
         }, { Authorization: res.access_token })
           .then(response => {
             return response.json();
-          }).then(data => {
-          $.notify('Go link created successfully', 'success');
-          resolve(camelcaseKeys(data));
-
-        }).catch(e => {
+          })
+          .then(data => {
+            resolve(camelcaseKeys(data));
+          }).catch(e => {
           // it can be error, but no block for server side processing, not sure why
           console.error('Error:' + e.message);
           reject(e);
