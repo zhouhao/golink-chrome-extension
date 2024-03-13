@@ -1,7 +1,7 @@
 {
-  "name": "my-extension",
+  "name": "tiny-golink",
   "version": "0.1.0",
-  "description": "My Chrome Extension",
+  "description": "My Go Link Extension",
   "private": true,
   "scripts": {
     "watch": "webpack --mode=development --watch --config config/webpack.config.js",
