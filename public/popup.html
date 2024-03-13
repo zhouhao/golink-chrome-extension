@@ -1,32 +1,59 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>My Chrome Extension</title>
-    <link rel="stylesheet" href="popup.css" />
-  </head>
-  <body>
-    <div class="app">
-      <p class="counter-label">Counter</p>
-      <div id="counter" class="counter"></div>
-      <div class="button-container">
-        <button id="decrementBtn" class="button">-</button>
-        <button id="incrementBtn" class="button">+</button>
-      </div>
+<head>
+  <meta charset="UTF-8">
+  <meta name="referrer" content="no-referrer">
+  <title>Tiny Go Link</title>
+  <link rel="stylesheet" href="popup.css"/>
+</head>
+<body>
 
-      <hr class="divider" />
-
-      <p class="title">Chrome Extension is Ready!</p>
-      <p class="subtitle">Start by updating <code>popup.html</code></p>
+<div class="lds-roller" id="spinner">
+  <div></div>
+  <div></div>
+  <div></div>
+  <div></div>
+  <div></div>
+  <div></div>
+  <div></div>
+  <div></div>
+</div>
+<form class="pure-form pure-form-aligned no-login">
+  <fieldset>
+    <legend>Please Login</legend>
+    <div class="pure-control-group">
+      <label for="user-email">Email Address</label>
+      <input type="email" id="user-email" placeholder="Email Address"/>
+      <span class="pure-form-message-inline">
+                <button type="button" class="pure-button button-secondary"
+                        id="send-email-code">Send Verification Code</button>
+            </span>
     </div>
+    <div class="pure-control-group">
+      <label for="email-code">Verification Code</label>
+      <input type="text" id="email-code" placeholder="Check Email for Code"/>
+    </div>
+    <div class="pure-controls">
+      <button type="button" class="pure-button pure-button-primary" id="login">SignIn</button>
+    </div>
+  </fieldset>
+</form>
 
-    <script src="popup.js"></script>
-
-    <!--
-      This HTML file opens when you click on icon from the toolbar.
-
-      To begin the development, run `npm run watch`.
-      To create a production bundle, use `npm run build`.
-    -->
-  </body>
+<form class="pure-form need-login">
+  <fieldset>
+    <legend>Create You Own Go Link</legend>
+    <input type="text" class="pure-input-2-3" id="url-key" placeholder="You custom go link key(only 0-9a-zA-Z-_)"/>
+    <button type="submit" class="pure-button pure-button-primary" id="create-new-link">Create</button>
+  </fieldset>
+</form>
+<form class="pure-form need-login">
+  <fieldset>
+    <legend>Existing Go Links</legend>
+    <ul id="go-links">
+    </ul>
+  </fieldset>
+</form>
+<div id="root"></div>
+<script src="popup.js"></script>
+</body>
 </html>
