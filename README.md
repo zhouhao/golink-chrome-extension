@@ -4,8 +4,8 @@ My Chrome Extension
 
 ## Features
 
-- Feature 1
-- Feature 2
+- Create go link shortcut with current tab 
+- Redirect to real url when a go link has been typed
 
 ## Install
 
