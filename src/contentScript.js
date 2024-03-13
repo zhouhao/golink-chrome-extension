@@ -14,7 +14,7 @@
 // Log `title` of current active web page
 const pageTitle = document.head.getElementsByTagName('title')[0].innerHTML;
 console.log(
-  `Page title is: '${pageTitle}' - evaluated by Chrome extension's 'contentScript.js' file`
+  `Page title is: '${pageTitle}' - evaluated by Chrome extension's 'contentScript.js' file`,
 );
 
 // Communicate with background file by sending a message
@@ -27,7 +27,7 @@ chrome.runtime.sendMessage(
   },
   (response) => {
     console.log(response.message);
-  }
+  },
 );
 
 // Listen for message

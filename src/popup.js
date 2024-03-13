@@ -2,7 +2,7 @@
 
 import './popup.css';
 
-(function () {
+(function() {
   // We will make use of Storage API to get and store `count` value
   // More information on Storage API can we found at
   // https://developer.chrome.com/extensions/storage
@@ -23,7 +23,7 @@ import './popup.css';
         },
         () => {
           cb();
-        }
+        },
       );
     },
   };
@@ -74,7 +74,7 @@ import './popup.css';
             },
             (response) => {
               console.log('Current count value passed to contentScript file');
-            }
+            },
           );
         });
       });
@@ -107,6 +107,6 @@ import './popup.css';
     },
     (response) => {
       console.log(response.message);
-    }
+    },
   );
 })();

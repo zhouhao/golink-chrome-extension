@@ -13,3 +13,7 @@ npm-debug.log*
 
 # packed files
 /release
+
+.idea
+
+
