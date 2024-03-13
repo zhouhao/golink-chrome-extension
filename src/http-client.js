@@ -34,7 +34,7 @@ const isTokenExpired = token => {
   return Date.now() >= decoded.exp * 1000;
 };
 
-const checkUserAuthInfo = () => {
+export const checkUserAuthInfo = () => {
   return new Promise(function(resolve, reject) {
     chrome.storage.local.get(['token'], result => {
       if (chrome.runtime.lastError) {
@@ -184,5 +184,15 @@ export const saveGoLink = (url, urlKey) => {
       .catch(err => {
         reject(err);
       });
+  });
+};
+
+
+export const getCurrentUrl = () => {
+  return new Promise((resolve, reject) => {
+    chrome.tabs.query({ active: true, lastFocusedWindow: true }, tabs => {
+      let url = tabs[0].url;
+      resolve(url);
+    });
   });
 };

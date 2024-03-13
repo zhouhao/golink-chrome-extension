@@ -1,112 +1,103 @@
-'use strict';
+import $ from 'jquery';
+import 'notifyjs-browser';
+import {
+  checkUserAuthInfo,
+  fetchGoLinksByUrl,
+  getCurrentUrl,
+  login,
+  requestEmailCode,
+  saveGoLink,
+} from './http-client';
 
-import './popup.css';
+const isValidEmail = (email) => {
+  return String(email)
+    .toLowerCase()
+    .match(
+      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
+    );
+};
 
-(function() {
-  // We will make use of Storage API to get and store `count` value
-  // More information on Storage API can we found at
-  // https://developer.chrome.com/extensions/storage
+const showAfterLogin = () => {
+  $('#spinner').hide();
+  $('.no-login').hide();
+  $('.need-login').show();
+};
 
-  // To get storage access, we have to mention it in `permissions` property of manifest.json file
-  // More information on Permissions can we found at
-  // https://developer.chrome.com/extensions/declare_permissions
-  const counterStorage = {
-    get: (cb) => {
-      chrome.storage.sync.get(['count'], (result) => {
-        cb(result.count);
-      });
-    },
-    set: (value, cb) => {
-      chrome.storage.sync.set(
-        {
-          count: value,
-        },
-        () => {
-          cb();
-        },
-      );
-    },
-  };
+const showBeforeLogin = () => {
+  $('#spinner').hide();
+  $('.no-login').show();
+  $('.need-login').hide();
+};
 
-  function setupCounter(initialValue = 0) {
-    document.getElementById('counter').innerHTML = initialValue;
-
-    document.getElementById('incrementBtn').addEventListener('click', () => {
-      updateCounter({
-        type: 'INCREMENT',
-      });
-    });
-
-    document.getElementById('decrementBtn').addEventListener('click', () => {
-      updateCounter({
-        type: 'DECREMENT',
-      });
-    });
+const renderGoLinks = (goLinks) => {
+  const list = $('#go-links');
+  list.empty();
+  if (goLinks.length === 0) {
+    list.append('<li>No go links found</li>');
+    return;
+  }
+  for (let i = 0; i < goLinks.length; i++) {
+    let link = goLinks[i];
+    list.append('<li><a href=\'' + link.link + '\' target=\'_blank\'> https://go/' + link.key + '</a></li>');
+  }
+};
+//---------------------------------
+$('#send-email-code').on('click', function() {
+  let email = $('input#user-email').val().trim();
+  if (!isValidEmail(email)) {
+    alert(email + ' is not a valid email address');
+    return;
   }
 
-  function updateCounter({ type }) {
-    counterStorage.get((count) => {
-      let newCount;
+  requestEmailCode(email).then(response => {
+    $.notify('Email code sent successfully', 'success');
+  });
+});
 
-      if (type === 'INCREMENT') {
-        newCount = count + 1;
-      } else if (type === 'DECREMENT') {
-        newCount = count - 1;
-      } else {
-        newCount = count;
-      }
+$('#login').on('click', function() {
+  let email = $('input#user-email').val().trim();
+  let emailCode = $('input#email-code').val().trim();
+  if (!isValidEmail(email) || emailCode.length === 0) {
+    alert('Please make sure email and code are valid');
+    return;
+  }
 
-      counterStorage.set(newCount, () => {
-        document.getElementById('counter').innerHTML = newCount;
+  login(email, emailCode).then(() => {
+    showAfterLogin();
+  });
+});
 
-        // Communicate with content script of
-        // active tab by sending a message
-        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-          const tab = tabs[0];
+$('#create-new-link').on('click', function() {
+  let urlKey = $('input#url-key').val().trim();
+  if (urlKey.length === 0) {
+    alert('Please enter a valid go link key');
+    return;
+  }
 
-          chrome.tabs.sendMessage(
-            tab.id,
-            {
-              type: 'COUNT',
-              payload: {
-                count: newCount,
-              },
-            },
-            (response) => {
-              console.log('Current count value passed to contentScript file');
-            },
-          );
-        });
+  getCurrentUrl().then(url => {
+    saveGoLink(url, urlKey).then(data => {
+      alert('data = ' + JSON.stringify(data));
+      $.notify('Go link created successfully', 'success');
+    }).catch(e => {
+      // it can be error, but no block for server side processing, not sure why
+      console.error('Error:' + e.message);
+    }).finally(() => {
+      fetchGoLinksByUrl(url).then(goLinks => {
+        renderGoLinks(goLinks);
       });
     });
-  }
+  });
+});
 
-  function restoreCounter() {
-    // Restore count value
-    counterStorage.get((count) => {
-      if (typeof count === 'undefined') {
-        // Set counter value as 0
-        counterStorage.set(0, () => {
-          setupCounter(0);
-        });
-      } else {
-        setupCounter(count);
-      }
-    });
-  }
+checkUserAuthInfo()
+  .then(res => {
+    showAfterLogin();
+  }).catch(err => {
+  showBeforeLogin();
+});
 
-  document.addEventListener('DOMContentLoaded', restoreCounter);
-
-  // Communicate with background file by sending a message
-  chrome.runtime.sendMessage(
-    {
-      type: 'GREETINGS',
-      payload: {
-        message: 'Hello, my name is Pop. I am from Popup.',
-      },
-    },
-    (response) => {
-      console.log(response.message);
-    },
-  );
-})();
+getCurrentUrl().then(url => {
+  fetchGoLinksByUrl(url).then(goLinks => {
+    renderGoLinks(goLinks);
+  });
+});
